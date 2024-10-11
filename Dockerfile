@@ -1,6 +1,9 @@
-FROM node:lts-slim AS base
+FROM node:14-alpine AS development
+ENV NODE_ENV development
 WORKDIR /app
+COPY package.json .
+COPY package-lock.json .
 RUN npm ci --legacy-peer-deps
-RUN npm run build
-ADD /build/* /app/
-ENTRYPOINT ["npm i -g serve & serve build"]
+COPY . .
+EXPOSE 3000
+CMD [ "npm", "run", "start" ]
