@@ -33,7 +33,7 @@ jobs:
         run: docker save hack/frontend -o hack-frontend
 
       - name: send to server
-        runs: scp hack-frontend root@${{ secrets.SERVER_IP }}:/root/docker-images/image-frontend
+        run: scp hack-frontend root@${{ secrets.SERVER_IP }}:/root/docker-images/image-frontend
 
       - name: remove container
         run: ssh root@{{ secrets.SERVER_IP }} 'docker rm -f $(docker ps | grep hack/frontend | cut -d" " -f1)'
