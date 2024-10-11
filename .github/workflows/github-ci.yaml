@@ -1,0 +1,49 @@
+name: Github CI
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    name: Deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install SSH Key
+        uses: shimataro/ssh-key-action@v2
+        with:
+            key: ${{ secrets.SSH_PRIVATE_KEY }}
+            known_hosts: 'just-a-placeholder-so-we-dont-get-errors'
+
+      - name: Adding Known Hosts
+        run: ssh-keyscan -H ${{ secrets.SERVER_IP }} >> ~/.ssh/known_hosts
+
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+            fetch-depth: 0
+            
+      - name: build image
+        shell: bash
+        run: docker build -t hack/frontend
+
+      - name: save image
+        shell: bash
+        run: docker save hack/frontend -o hack-frontend
+
+      - name: send to server
+        runs: scp hack-frontend root@${{ secrets.SERVER_IP }}:/root/docker-images
+
+      - name: remove container
+        run: ssh root@{{ secrets.SERVER_IP }} 'docker rm -f $(docker ps | grep hack/frontend | cut -d" " -f1)'
+        continue-on-error: true
+
+      - name: remove old image
+        run: ssh root@{{ secrets.SERVER_IP }} 'docker rmi -f hack/frontend'
+
+      - name: load image
+        runs: ssh root@${{ secrets.SERVER_IP }} 'docker load --image ~/docker-images/hack-frontend'
+
+      - name: run container
+        runs: ssh root@${{ secrets.SERVER_IP }} 'docker run -p 3000:3000 hack/frontend -d'
