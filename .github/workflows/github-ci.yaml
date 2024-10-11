@@ -36,11 +36,11 @@ jobs:
         run: scp hack-frontend root@${{ secrets.SERVER_IP }}:/root/docker-images/image-frontend
 
       - name: remove container
-        run: ssh root@{{ secrets.SERVER_IP }} 'docker rm -f $(docker ps | grep hack/frontend | cut -d" " -f1)'
+        run: ssh root@${{ secrets.SERVER_IP }} 'docker rm -f $(docker ps | grep hack/frontend | cut -d" " -f1)'
         continue-on-error: true
 
       - name: remove old image
-        run: ssh root@{{ secrets.SERVER_IP }} 'docker rmi -f hack/frontend'
+        run: ssh root@${{ secrets.SERVER_IP }} 'docker rmi -f hack/frontend'
 
       - name: load image
         run: ssh root@${{ secrets.SERVER_IP }} 'docker load --input ~/docker-images/image-frontend'
